@@ -8,7 +8,34 @@ st.set_page_config(
     page_icon="⚙️",
     layout="wide"
 )
+# --- OCULTAR MENU PADRÃO E APLICAR ASSINATURA ---
+st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    .marca-registrada {
+        padding: 12px;
+        background-color: #1e222d;
+        border-radius: 8px;
+        border-left: 4px solid #00a8e8;
+        color: #ffffff;
+        font-size: 13px;
+        margin-top: 20px;
+    }
+    </style>
+""", unsafe_allow_key=True)
 
+# --- ASSINATURA NA BARRA LATERAL (SIDEBAR) ---
+st.sidebar.markdown("""
+    <div class="marca-registrada">
+        ⚡ <b>Desenvolvido por:</b><br>
+        <b>Matheus Feliphe</b><br>
+        <i>Engenharia Mecânica</i><br>
+        <span style="font-size:11px; color:#a0a0a0;">© 2026 - Todos os direitos reservados</span>
+    </div>
+""", unsafe_allow_key=True)
 # --- CONEXÃO COM O BANCO DE DADOS (ESTOQUE) ---
 def conectar_bd():
     conn = sqlite3.connect("estoque_diesel.db")
