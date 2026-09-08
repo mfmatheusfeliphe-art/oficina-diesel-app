@@ -53,17 +53,28 @@ def get_connection():
 def init_db():
     conn = get_connection()
     c = conn.cursor()
+    # Criar tabela caso não exista
     c.execute('''
         CREATE TABLE IF NOT EXISTS estoque (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             codigo TEXT UNIQUE NOT NULL,
             nome TEXT NOT NULL,
-            categoria TEXT,
+            categoria TEXT DEFAULT 'Outros',
             quantidade INTEGER NOT NULL DEFAULT 0,
             qtd_minima INTEGER NOT NULL DEFAULT 1,
             preco REAL NOT NULL DEFAULT 0.0
         )
     ''')
+    
+    # Migração automática das colunas faltantes se o banco for antigo
+    c.execute("PRAGMA table_info(estoque)")
+    colunas = [coluna[1] for coluna in c.fetchall()]
+    
+    if 'categoria' not in colunas:
+        c.execute("ALTER TABLE estoque ADD COLUMN categoria TEXT DEFAULT 'Outros'")
+    if 'qtd_minima' not in colunas:
+        c.execute("ALTER TABLE estoque ADD COLUMN qtd_minima INTEGER DEFAULT 1")
+        
     conn.commit()
     conn.close()
 
