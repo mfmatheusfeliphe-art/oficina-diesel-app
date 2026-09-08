@@ -44,13 +44,13 @@ DIAGNOSTICOS_VW_24280 = {
             "Pino 1": "Massa de Sensores (GND) -> Conecta ao Pino A58 da ECU",
             "Pino 2": "Sinal de Tensão (0.5V a 4.5V) -> Conecta ao Pino A41 da ECU",
             "Pino 3": "Alimentação +5V VCC -> Conecta ao Pino A42 da ECU"
-        ],
+        },
         "valores_referencia": {
             "Tensão com Chave Ligada (Motor Parado)": "0.50V ± 0.05V (Pressão 0 bar)",
             "Tensão em Marcha Lenta (~600 RPM)": "1.30V a 1.50V (~350 a 400 bar)",
             "Tensão em Carga Máxima": "Até 4.20V (~1600 bar)",
             "Resistência de Isolamento": "OL (Infinita) para a carcaça/massa do motor"
-        ],
+        },
         "passos_teste": [
             {
                 "passo": 1,
@@ -86,13 +86,13 @@ DIAGNOSTICOS_VW_24280 = {
         "pinout": {
             "Pino 1": "Alimentação / Sinal PWM (ECU Pino A09)",
             "Pino 2": "Sinal PWM / Retorno (ECU Pino A10)"
-        ],
+        },
         "valores_referencia": {
             "Resistência Elétrica da Bobina": "2.8 Ω a 3.5 Ω a 20°C",
             "Isolamento para Carcaça": "OL (Infinita)",
             "Sinal de Controle (Osciloscópio)": "Sinal PWM em frequência de ~180 Hz a 200 Hz",
             "Duty Cycle (Marcha Lenta)": "Aproximadamente 38% a 45% (Normalmente Aberta)"
-        ],
+        },
         "passos_teste": [
             {
                 "passo": 1,
@@ -131,12 +131,12 @@ DIAGNOSTICOS_VW_24280 = {
             "Pino 3": "Alimentação +5V do Sensor de Posição",
             "Pino 4": "Motor DC / Atuador EGR (+)",
             "Pino 5": "Motor DC / Atuador EGR (-)"
-        ],
+        },
         "valores_referencia": {
             "Resistência do Motor do Atuador (Pinos 4 e 5)": "2.0 Ω a 6.0 Ω",
             "Sinal de Posição com EGR Fechada (Repouso)": "~0.8V a 1.0V",
             "Sinal de Posição com EGR Totalmente Aberta": "~4.0V a 4.5V"
-        ],
+        },
         "passos_teste": [
             {
                 "passo": 1,
