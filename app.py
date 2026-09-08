@@ -25,6 +25,137 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+# --- BANCO DE DADOS DE DIAGNÓSTICO: VW 24.280 (MOTOR MAN D08 36) ---
+DIAGNOSTICOS_VW_24280 = {
+    # -------------------------------------------------------------------------
+    # 1. SENSOR DE PRESSÃO DO RAIL (CRP - COMMON RAIL PRESSURE)
+    # -------------------------------------------------------------------------
+    "VW 24.280 - Sensor de Pressão do Rail (MAN D08)": {
+        "veiculo": "VW Constellation 24.280",
+        "motor": "MAN D08 36 (6 Cilindros - EGR)",
+        "modulo_ecu": "Bosch EDC17 C55",
+        "sistema": "Injeção Common Rail",
+        "sintomas": [
+            "Motor corta em aceleração (falta de potência)",
+            "Dificuldade ou não pega na partida",
+            "Código de falha P0087 (Pressão Baixa) ou P0088 (Pressão Alta)"
+        ],
+        "pinout": {
+            "Pino 1": "Massa de Sensores (GND) -> Conecta ao Pino A58 da ECU",
+            "Pino 2": "Sinal de Tensão (0.5V a 4.5V) -> Conecta ao Pino A41 da ECU",
+            "Pino 3": "Alimentação +5V VCC -> Conecta ao Pino A42 da ECU"
+        ],
+        "valores_referencia": {
+            "Tensão com Chave Ligada (Motor Parado)": "0.50V ± 0.05V (Pressão 0 bar)",
+            "Tensão em Marcha Lenta (~600 RPM)": "1.30V a 1.50V (~350 a 400 bar)",
+            "Tensão em Carga Máxima": "Até 4.20V (~1600 bar)",
+            "Resistência de Isolamento": "OL (Infinita) para a carcaça/massa do motor"
+        ],
+        "passos_teste": [
+            {
+                "passo": 1,
+                "acao": "Teste de Alimentação e Massa",
+                "detalhe": "Chave ligada. Meça com multímetro entre Pino 3 (+5V) e Pino 1 (Massa). Deve indicar 5.0V cravados. Se não houver 5V, verifique chicote ou linha de 5V da ECU."
+            },
+            {
+                "passo": 2,
+                "acao": "Teste de Sinal em Repouso",
+                "detalhe": "Com o conector plugado no sensor (use agulhas de teste), meça entre Pino 2 (Sinal) e Pino 1 (Massa). Com a chave ligada e motor parado, a leitura OBRIGATORIAMENTE deve ser 0.50V."
+            },
+            {
+                "passo": 3,
+                "acao": "Teste Dinâmico na Partida/Marcha Lenta",
+                "detalhe": "Dê partida no motor. O sinal deve subir para aproximadamente 1.3V a 1.5V. Se o sinal não passar de 0.8V na partida, a pressão mecânica do Rail está insuficiente para liberar a partida na ECU."
+            }
+        ]
+    },
+
+    # -------------------------------------------------------------------------
+    # 2. VÁLVULA M-PROP / ZME (DOSADORA DA BOMBA DE ALTA PRESSÃO)
+    # -------------------------------------------------------------------------
+    "VW 24.280 - Válvula Dosadora M-Prop / ZME (Bomba CP3.4)": {
+        "veiculo": "VW Constellation 24.280",
+        "motor": "MAN D08 36",
+        "modulo_ecu": "Bosch EDC17 C55",
+        "sistema": "Injeção Common Rail - Alimentação de Alta",
+        "sintomas": [
+            "Motor oscila marcha lenta (oscilação de RPM)",
+            "Pressão do Rail desgovernada",
+            "Entra em Modo de Emergência (Limp Mode) sob carga"
+        ],
+        "pinout": {
+            "Pino 1": "Alimentação / Sinal PWM (ECU Pino A09)",
+            "Pino 2": "Sinal PWM / Retorno (ECU Pino A10)"
+        ],
+        "valores_referencia": {
+            "Resistência Elétrica da Bobina": "2.8 Ω a 3.5 Ω a 20°C",
+            "Isolamento para Carcaça": "OL (Infinita)",
+            "Sinal de Controle (Osciloscópio)": "Sinal PWM em frequência de ~180 Hz a 200 Hz",
+            "Duty Cycle (Marcha Lenta)": "Aproximadamente 38% a 45% (Normalmente Aberta)"
+        ],
+        "passos_teste": [
+            {
+                "passo": 1,
+                "acao": "Medição de Resistência Ôhmica",
+                "detalhe": "Desconecte a M-Prop. Meça a resistência entre os Pinos 1 e 2 do componente. Valor esperado: 2.8 Ω a 3.5 Ω. Valores abaixo indicam curto interno; acima indicam bobina interrompida."
+            },
+            {
+                "passo": 2,
+                "acao": "Teste de Curto para Massa",
+                "detalhe": "Meça a resistência entre qualquer pino do conector da M-Prop e o corpo metálico da bomba de alta. Deve marcar OL (sem continuidade)."
+            },
+            {
+                "passo": 3,
+                "acao": "Análise Mecânica (Limalha)",
+                "detalhe": "Remova a M-Prop (2 parafusos Torx) e inspecione a micro-peneira na ponta da válvula. Se houver partículas prateadas/douradas (limalha), a bomba de alta está em processo de destruição mecânica."
+            }
+        ]
+    },
+
+    # -------------------------------------------------------------------------
+    # 3. VÁLVULA EGR (SISTEMA DE RECICLAGEM DOS GASES DE ESCAPE)
+    # -------------------------------------------------------------------------
+    "VW 24.280 - Válvula EGR (Atuador Elétrico e Sensor de Posição)": {
+        "veiculo": "VW Constellation 24.280",
+        "motor": "MAN D08 36 (Sistema EGR)",
+        "modulo_ecu": "Bosch EDC17 C55",
+        "sistema": "Gestão de Emissões / Controle de Oxigênio",
+        "sintomas": [
+            "Fumaça preta excessiva no escape",
+            "Perda brusca de potência e alto consumo",
+            "Códigos P0401 (Fluxo Insuficiente) ou P0402 (Fluxo Excessivo)"
+        ],
+        "pinout": {
+            "Pino 1": "Massa do Sensor de Posição",
+            "Pino 2": "Sinal do Sensor de Posição (Potenciômetro)",
+            "Pino 3": "Alimentação +5V do Sensor de Posição",
+            "Pino 4": "Motor DC / Atuador EGR (+)",
+            "Pino 5": "Motor DC / Atuador EGR (-)"
+        ],
+        "valores_referencia": {
+            "Resistência do Motor do Atuador (Pinos 4 e 5)": "2.0 Ω a 6.0 Ω",
+            "Sinal de Posição com EGR Fechada (Repouso)": "~0.8V a 1.0V",
+            "Sinal de Posição com EGR Totalmente Aberta": "~4.0V a 4.5V"
+        ],
+        "passos_teste": [
+            {
+                "passo": 1,
+                "acao": "Teste de Trancamento Mecânico / Carbonização",
+                "detalhe": "Em veículos com alta quilometragem, a crosta de fuligem/óleo trava a borboleta interna da EGR. Remova o duto e confirme manualmente se a borboleta retorna suavemente pela força da mola."
+            },
+            {
+                "passo": 2,
+                "acao": "Medição do Motor do Atuador",
+                "detalhe": "Desconecte o soquete de 5 pinos. Meça com multímetro a resistência entre Pinos 4 e 5. Se estiver em curto (< 0.5 Ω) ou aberta (OL), o motor interno queimou a bobina."
+            },
+            {
+                "passo": 3,
+                "acao": "Teste de Resposta do Potenciômetro de Posição",
+                "detalhe": "Com chave ligada, monitore a tensão do Pino 2 (Sinal). Mova a haste manualmente (ou via scanner na função de atuadores): a voltagem deve subir de forma contínua sem saltos ou interrupções."
+            }
+        ]
+    }
+}
 
 # --- ASSINATURA NA BARRA LATERAL (SIDEBAR) ---
 st.sidebar.markdown("""
