@@ -16,11 +16,26 @@ st.markdown("""
     header {visibility: hidden;}
     footer {visibility: hidden;}
     
-    .stMetric {
-        background-color: #1e222d;
+    /* Ajuste de cor dos cartões de métricas para alta legibilidade */
+    [data-testid="stMetric"] {
+        background-color: #f8f9fa;
         padding: 15px;
         border-radius: 8px;
-        border-left: 4px solid #00a8e8;
+        border-left: 5px solid #00a8e8;
+        border-top: 1px solid #e0e0e0;
+        border-right: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    [data-testid="stMetricLabel"] {
+        color: #31333F !important;
+        font-weight: 600 !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: #00a8e8 !important;
+        font-weight: bold !important;
     }
     
     .empresa-header {
