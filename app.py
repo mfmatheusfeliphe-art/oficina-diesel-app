@@ -7,8 +7,7 @@ st.set_page_config(
     page_title="Gestão & Diagnóstico Diesel",
     page_icon="⚙️",
     layout="wide"
-)
-# --- OCULTAR MENU PADRÃO E APLICAR ASSINATURA ---
+)# --- OCULTAR MENU PADRÃO E APLICAR ASSINATURA ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -25,7 +24,7 @@ st.markdown("""
         margin-top: 20px;
     }
     </style>
-""", unsafe_allow_key=True)
+""", unsafe_allow_html=True)
 
 # --- ASSINATURA NA BARRA LATERAL (SIDEBAR) ---
 st.sidebar.markdown("""
@@ -35,7 +34,18 @@ st.sidebar.markdown("""
         <i>Engenharia Mecânica</i><br>
         <span style="font-size:11px; color:#a0a0a0;">© 2026 - Todos os direitos reservados</span>
     </div>
-""", unsafe_allow_key=True)
+""", unsafe_allow_html=True)
+
+# --- ASSINATURA NA BARRA LATERAL (SIDEBAR) ---
+st.sidebar.markdown("""
+    <div class="marca-registrada">
+        ⚡ <b>Desenvolvido por:</b><br>
+        <b>Matheus Feliphe</b><br>
+        <i>Engenharia Mecânica</i><br>
+        <span style="font-size:11px; color:#a0a0a0;">© 2026 - Todos os direitos reservados</span>
+    </div>
+""", unsafe_allow_html=True)
+
 # --- CONEXÃO COM O BANCO DE DADOS (ESTOQUE) ---
 def conectar_bd():
     conn = sqlite3.connect("estoque_diesel.db")
