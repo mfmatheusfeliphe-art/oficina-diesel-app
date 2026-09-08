@@ -26,7 +26,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 # --- BANCO DE DADOS DE DIAGNÓSTICO: VW 24.280 (MOTOR MAN D08 36) ---
-DIAGNOSTICOS_VW_24280 = {# Unindo o banco de dados do VW 24.280 ao sistema principal
+DIAGNOSTICOS_VW_24280 = {
+    # Unindo o banco de dados do VW 24.280 ao sistema principal
 if "DIAGNOSTICOS" in locals():
     DIAGNOSTICOS.update(DIAGNOSTICOS_VW_24280)
 else:
