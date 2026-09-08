@@ -75,33 +75,16 @@ st.caption("Gestão de peças, componentes de injeção Common Rail e Arla 32")
 
 # --- NAVEGAÇÃO DA BARRA LATERAL ---
 st.sidebar.title("🔍 Menu")
-menu = st.sidebar.radio("Selecione uma opção:", ["Visão Geral & Consulta", "Cadastrar Peça", "Movimentação (Entrada/Saída)"])
+menu = st.sidebar.radio("Selecione uma opção:", ["Consulta de Peças", "Cadastrar Peça", "Movimentação (Entrada/Saída)"])
 
 # --- BANCO DE DADOS: LEITURA DE DADOS ---
 conn = get_connection()
 df = pd.read_sql_query("SELECT * FROM estoque", conn)
 conn.close()
 
-# --- OPÇÃO 1: VISÃO GERAL & CONSULTA ---
-if menu == "Visão Geral & Consulta":
-    # Métricas de topo
-    if not df.empty:
-        total_itens = len(df)
-        total_pecas = df['quantidade'].sum()
-        valor_total = (df['quantidade'] * df['preco']).sum()
-        alertas = df[df['quantidade'] <= df['qtd_minima']]
-
-        col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Tipos de Peças", total_itens)
-        col2.metric("Total em Estoque (Un)", total_pecas)
-        col3.metric("Valor em Estoque", f"R$ {valor_total:,.2f}")
-        col4.metric("Itens com Estoque Baixo", len(alertas))
-
-        if len(alertas) > 0:
-            st.warning(f"⚠️ **Atenção:** Existem {len(alertas)} item(ns) com estoque no limite crítico ou zerado!")
-    
-    st.markdown("---")
-    st.subheader("📋 Tabela de Peças Cadastradas")
+# --- OPÇÃO 1: CONSULTA DE PEÇAS ---
+if menu == "Consulta de Peças":
+    st.subheader("📋 Peças Cadastradas")
 
     # Filtro de busca
     busca = st.text_input("🔍 Buscar por Código, Nome ou Categoria:")
@@ -115,7 +98,7 @@ if menu == "Visão Geral & Consulta":
                 df_exibicao['categoria'].str.contains(busca, case=False, na=False)
             ]
         
-        # Formatação de preços e colunas
+        # Formatação de preços
         df_exibicao['preco'] = df_exibicao['preco'].map("R$ {:,.2f}".format)
         
         st.dataframe(
@@ -180,7 +163,6 @@ elif menu == "Movimentação (Entrada/Saída)":
     st.subheader("🔄 Atualizar Quantidade em Estoque")
 
     if not df.empty:
-        # Seleção da peça
         pecas_dict = {f"{row['codigo']} - {row['nome']} (Atual: {row['quantidade']} un)": row['codigo'] for _, row in df.iterrows()}
         peca_selecionada = st.selectbox("Selecione a Peça:", list(pecas_dict.keys()))
         cod_peca = pecas_dict[peca_selecionada]
@@ -195,7 +177,6 @@ elif menu == "Movimentação (Entrada/Saída)":
             conn = get_connection()
             c = conn.cursor()
             
-            # Buscar quantidade atual
             c.execute("SELECT quantidade FROM estoque WHERE codigo = ?", (cod_peca,))
             qtd_atual = c.fetchone()[0]
 
