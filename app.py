@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
+from sqlalchemy import create_engine, text
 
 # Configuração da página
 st.set_page_config(
@@ -16,7 +16,6 @@ st.markdown("""
     header {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* Ajuste de cor dos cartões de métricas para alta legibilidade */
     [data-testid="stMetric"] {
         background-color: #f8f9fa;
         padding: 15px;
@@ -70,37 +69,28 @@ st.sidebar.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- INICIALIZAÇÃO DO BANCO DE DADOS LOCAL ---
-DB_NAME = 'estoque_diesel.db'
+# --- CONEXÃO COM BANCO DE DADOS EM NUVEM (SUPABASE) ---
+@st.cache_resource
+def get_db_engine():
+    db_url = st.secrets["postgres"]["url"]
+    return create_engine(db_url)
 
-def get_connection():
-    return sqlite3.connect(DB_NAME)
+engine = get_db_engine()
 
 def init_db():
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS estoque (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo TEXT UNIQUE NOT NULL,
-            nome TEXT NOT NULL,
-            categoria TEXT DEFAULT 'Outros',
-            quantidade INTEGER NOT NULL DEFAULT 0,
-            qtd_minima INTEGER NOT NULL DEFAULT 1,
-            preco REAL NOT NULL DEFAULT 0.0
-        )
-    ''')
-    
-    c.execute("PRAGMA table_info(estoque)")
-    colunas = [coluna[1] for coluna in c.fetchall()]
-    
-    if 'categoria' not in colunas:
-        c.execute("ALTER TABLE estoque ADD COLUMN categoria TEXT DEFAULT 'Outros'")
-    if 'qtd_minima' not in colunas:
-        c.execute("ALTER TABLE estoque ADD COLUMN qtd_minima INTEGER DEFAULT 1")
-        
-    conn.commit()
-    conn.close()
+    with engine.connect() as conn:
+        conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS estoque (
+                id SERIAL PRIMARY KEY,
+                codigo VARCHAR(100) UNIQUE NOT NULL,
+                nome VARCHAR(255) NOT NULL,
+                categoria VARCHAR(100) DEFAULT 'Outros',
+                quantidade INTEGER NOT NULL DEFAULT 0,
+                qtd_minima INTEGER NOT NULL DEFAULT 1,
+                preco NUMERIC(10, 2) NOT NULL DEFAULT 0.0
+            );
+        '''))
+        conn.commit()
 
 init_db()
 
@@ -113,14 +103,11 @@ st.caption("Gestão de peças, componentes de injeção Common Rail e Arla 32")
 st.sidebar.title("🔍 Menu")
 menu = st.sidebar.radio("Selecione uma opção:", ["Visão Geral & Consulta", "Cadastrar Peça", "Movimentação (Entrada/Saída)"])
 
-# --- BANCO DE DADOS: LEITURA DE DADOS ---
-conn = get_connection()
-df = pd.read_sql_query("SELECT * FROM estoque", conn)
-conn.close()
+# --- LEITURA DE DADOS DA NUVEM ---
+df = pd.read_sql("SELECT * FROM estoque ORDER BY id DESC", engine)
 
 # --- OPÇÃO 1: VISÃO GERAL & CONSULTA ---
 if menu == "Visão Geral & Consulta":
-    # Métricas de topo
     if not df.empty:
         total_itens = len(df)
         total_pecas = df['quantidade'].sum()
@@ -139,7 +126,6 @@ if menu == "Visão Geral & Consulta":
     st.markdown("---")
     st.subheader("📋 Tabela de Peças Cadastradas")
 
-    # Filtro de busca
     busca = st.text_input("🔍 Buscar por Código, Nome ou Categoria:")
     
     if not df.empty:
@@ -151,8 +137,7 @@ if menu == "Visão Geral & Consulta":
                 df_exibicao['categoria'].str.contains(busca, case=False, na=False)
             ]
         
-        # Formatação de preços
-        df_exibicao['preco'] = df_exibicao['preco'].map("R$ {:,.2f}".format)
+        df_exibicao['preco'] = df_exibicao['preco'].astype(float).map("R$ {:,.2f}".format)
         
         st.dataframe(
             df_exibicao.rename(columns={
@@ -196,18 +181,24 @@ elif menu == "Cadastrar Peça":
         if submitted:
             if codigo and nome:
                 try:
-                    conn = get_connection()
-                    c = conn.cursor()
-                    c.execute("""
-                        INSERT INTO estoque (codigo, nome, categoria, quantidade, qtd_minima, preco)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (codigo, nome, categoria, quantidade, qtd_minima, preco))
-                    conn.commit()
-                    conn.close()
-                    st.success(f"Peça '{nome}' cadastrada com sucesso!")
+                    with engine.connect() as conn:
+                        query = text("""
+                            INSERT INTO estoque (codigo, nome, categoria, quantidade, qtd_minima, preco)
+                            VALUES (:codigo, :nome, :categoria, :quantidade, :qtd_minima, :preco)
+                        """)
+                        conn.execute(query, {
+                            "codigo": codigo,
+                            "nome": nome,
+                            "categoria": categoria,
+                            "quantidade": quantidade,
+                            "qtd_minima": qtd_minima,
+                            "preco": preco
+                        })
+                        conn.commit()
+                    st.success(f"Peça '{nome}' cadastrada com sucesso na nuvem!")
                     st.rerun()
-                except sqlite3.IntegrityError:
-                    st.error(f"Erro: O código '{codigo}' já está cadastrado em outra peça.")
+                except Exception as e:
+                    st.error(f"Erro ao salvar: O código '{codigo}' já pode estar cadastrado.")
             else:
                 st.warning("Preencha os campos obrigatórios (Código e Descrição).")
 
@@ -227,24 +218,24 @@ elif menu == "Movimentação (Entrada/Saída)":
             qtd_mov = st.number_input("Quantidade da Movimentação", min_value=1, step=1, value=1)
 
         if st.button("Confirmar Movimentação"):
-            conn = get_connection()
-            c = conn.cursor()
-            
-            c.execute("SELECT quantidade FROM estoque WHERE codigo = ?", (cod_peca,))
-            qtd_atual = c.fetchone()[0]
+            with engine.connect() as conn:
+                res = conn.execute(text("SELECT quantidade FROM estoque WHERE codigo = :codigo"), {"codigo": cod_peca}).fetchone()
+                qtd_atual = res[0]
 
-            if "Entrada" in tipo_mov:
-                nova_qtd = qtd_atual + qtd_mov
-            else:
-                nova_qtd = qtd_atual - qtd_mov
+                if "Entrada" in tipo_mov:
+                    nova_qtd = qtd_atual + qtd_mov
+                else:
+                    nova_qtd = qtd_atual - qtd_mov
 
-            if nova_qtd < 0:
-                st.error("Erro: A quantidade em estoque não pode ficar negativa.")
-            else:
-                c.execute("UPDATE estoque SET quantidade = ? WHERE codigo = ?", (nova_qtd, cod_peca))
-                conn.commit()
-                conn.close()
-                st.success("Estoque atualizado com sucesso!")
-                st.rerun()
+                if nova_qtd < 0:
+                    st.error("Erro: A quantidade em estoque não pode ficar negativa.")
+                else:
+                    conn.execute(text("UPDATE estoque SET quantidade = :nova_qtd WHERE codigo = :codigo"), {
+                        "nova_qtd": nova_qtd,
+                        "codigo": cod_peca
+                    })
+                    conn.commit()
+                    st.success("Estoque atualizado com sucesso na nuvem!")
+                    st.rerun()
     else:
         st.info("Cadastre peças primeiro para poder realizar movimentações de entrada ou saída.")
