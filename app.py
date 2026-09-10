@@ -73,7 +73,12 @@ st.sidebar.markdown("""
 @st.cache_resource
 def get_db_engine():
     db_url = st.secrets["postgres"]["url"]
-    return create_engine(db_url)
+    # Garante suporte a SSL no PostgreSQL do Supabase
+    return create_engine(
+        db_url,
+        connect_args={"sslmode": "require"},
+        pool_pre_ping=True
+    )
 
 engine = get_db_engine()
 
